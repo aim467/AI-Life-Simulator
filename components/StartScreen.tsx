@@ -58,6 +58,34 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
     }
   };
 
+  const randomizeStats = () => {
+    const totalPoints = 20;
+    const statKeys: Array<keyof Stats> = ['health', 'intelligence', 'charm', 'wealth', 'happiness'];
+    const newStats: Stats = {
+      health: 0,
+      intelligence: 0,
+      charm: 0,
+      wealth: 0,
+      happiness: 0,
+    };
+
+    let remainingPoints = totalPoints;
+    
+    // Distribute points randomly
+    for (let i = 0; i < statKeys.length - 1; i++) {
+      const maxForThisStat = remainingPoints - (statKeys.length - 1 - i);
+      const randomPoints = Math.floor(Math.random() * (maxForThisStat + 1));
+      newStats[statKeys[i]] = randomPoints;
+      remainingPoints -= randomPoints;
+    }
+    
+    // Assign remaining points to the last stat
+    newStats[statKeys[statKeys.length - 1]] = remainingPoints;
+
+    setStats(newStats);
+    setPoints(0);
+  };
+
   const toggleTalent = (talent: Talent) => {
     if (selectedTalents.find(t => t.id === talent.id)) {
       setSelectedTalents(selectedTalents.filter(t => t.id !== talent.id));
@@ -148,8 +176,16 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
               <span className="bg-purple-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
               属性分配
             </h2>
-            <div className="text-sm bg-gray-800 border border-gray-600 px-4 py-1.5 rounded-full text-white shadow-inner">
-              可用点数: <span className={`font-mono font-bold text-lg ${points > 0 ? 'text-green-400' : 'text-gray-500'}`}>{points}</span>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={randomizeStats}
+                className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-purple-300 transition flex items-center gap-1"
+              >
+                🎲 随机分配
+              </button>
+              <div className="text-sm bg-gray-800 border border-gray-600 px-4 py-1.5 rounded-full text-white shadow-inner">
+                可用点数: <span className={`font-mono font-bold text-lg ${points > 0 ? 'text-green-400' : 'text-gray-500'}`}>{points}</span>
+              </div>
             </div>
           </div>
           

@@ -3,7 +3,9 @@ import { GameState, Phase, Stats, Talent, ChoiceOption } from './types';
 import StartScreen from './components/StartScreen';
 import StatsPanel from './components/StatsPanel';
 import EventLog from './components/EventLog';
-import { generateTurn, generateSummary } from './services/geminiService';
+// import { generateTurn, generateSummary } from './services/geminiService';
+import { generateTurn, generateSummary } from './services/ollamaService';
+
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -72,7 +74,7 @@ const App: React.FC = () => {
       newHistory.push({
         age: prev.age + 1,
         content: result.content,
-        type: result.isDeath ? 'death' : (result.choices ? 'choice' : 'normal'),
+        type: result.isDeath ? 'death' : (result.choices.length > 0 ? 'choice' : 'normal'),
         statsChanged: result.statChanges,
         achievements: result.achievements,
       });
@@ -201,7 +203,7 @@ const App: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {gameState.pendingChoice ? (
+            {gameState.pendingChoice && gameState.pendingChoice.length > 0 ? (
               <div className="space-y-2 animate-fade-in-up">
                  <p className="text-center text-xs text-purple-400 font-bold uppercase tracking-widest mb-2">命运的岔路口</p>
                  {gameState.pendingChoice.map((choice) => (
