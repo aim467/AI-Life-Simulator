@@ -2,10 +2,11 @@
 export default {
   content: [
     './index.html',
-    './App.tsx',
-    './index.tsx',
-    './components/**/*.{ts,tsx,jsx,js}',
-    './services/**/*.{ts,tsx,jsx,js}',
+    './App.vue',
+    './main.ts',
+    './components/**/*.{vue,ts}',
+    './services/**/*.{ts}',
+    './types.ts'
   ],
   theme: {
     extend: {},

@@ -15,7 +15,7 @@ body {
     sans-serif;
 }
 
-#root {
+#app {
   min-height: 100vh;
 }
 
