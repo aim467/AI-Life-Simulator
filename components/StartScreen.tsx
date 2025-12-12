@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { Stats, Talent } from '../types';
+import { 
+  LLMSelection, 
+  SUPPORTED_MODELS, 
+  getSavedLLMSelection, 
+  saveLLMSelection, 
+  DEFAULT_LLM_SELECTION 
+} from '../services/llmService';
 
 interface StartScreenProps {
   onStart: (initialStats: Stats, selectedTalents: Talent[]) => void;
@@ -24,6 +31,8 @@ const TALENT_POOL: Talent[] = [
 ];
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
+  const [modelSelection, setModelSelection] = useState<LLMSelection>(DEFAULT_LLM_SELECTION);
+  const [modelSaved, setModelSaved] = useState(false);
   const [points, setPoints] = useState(20);
   const [stats, setStats] = useState<Stats>({
     health: 0,
@@ -38,7 +47,30 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   
   React.useEffect(() => {
     rollTalents();
+    const savedModel = getSavedLLMSelection();
+    setModelSelection(savedModel);
   }, []);
+
+  const handleProviderChange = (provider: LLMSelection['provider']) => {
+    const option = SUPPORTED_MODELS.find(m => m.provider === provider);
+    setModelSelection(prev => ({
+      provider,
+      model: provider === prev.provider ? prev.model : option?.defaultModel || prev.model,
+    }));
+    setModelSaved(false);
+  };
+
+  const handleModelInput = (value: string) => {
+    setModelSelection(prev => ({ ...prev, model: value }));
+    setModelSaved(false);
+  };
+
+  const handleSaveModel = () => {
+    const normalized = saveLLMSelection(modelSelection);
+    setModelSelection(normalized);
+    setModelSaved(true);
+    setTimeout(() => setModelSaved(false), 1500);
+  };
 
   const rollTalents = () => {
     // Shuffle and pick 10 to display, user picks 3
@@ -97,6 +129,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   };
 
   const handleStart = () => {
+    saveLLMSelection(modelSelection);
     let finalStats = { ...stats };
     selectedTalents.forEach(t => {
       if (t.statModifiers) {
@@ -117,10 +150,83 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         <h1 className="text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
           AI 人生重开
         </h1>
-        <p className="text-gray-400 tracking-wider text-sm uppercase">Next-Gen Life Simulator powered by Gemini 2.5</p>
+        <p className="text-gray-400 tracking-wider text-sm uppercase">Next-Gen Life Simulator with Multi-Model Support</p>
       </div>
 
       <div className="w-full bg-gray-800/80 backdrop-blur rounded-3xl shadow-2xl border border-gray-700 overflow-hidden">
+        {/* Model Selection */}
+        <div className="p-6 border-b border-gray-700 bg-gray-900/40">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="bg-emerald-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">0</span> 
+                模型设置
+              </h2>
+              <p className="text-xs text-gray-400 mt-1">选择并保存你想要使用的大模型，设置会保存在浏览器</p>
+            </div>
+            {modelSaved && (
+              <span className="text-xs text-green-400 font-bold bg-green-900/40 border border-green-500/30 px-3 py-1 rounded-full">
+                已保存 ✓
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {SUPPORTED_MODELS.map(option => {
+              const selected = modelSelection.provider === option.provider;
+              return (
+                <label
+                  key={option.provider}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer block ${
+                    selected 
+                      ? 'border-blue-500/70 bg-blue-900/20 ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)]' 
+                      : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="llm-provider"
+                        checked={selected}
+                        onChange={() => handleProviderChange(option.provider)}
+                        className="accent-blue-500 w-4 h-4"
+                      />
+                      <div>
+                        <div className="text-sm font-bold text-white">{option.label}</div>
+                        <p className="text-xs text-gray-400 mt-0.5">{option.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <label className="text-[11px] text-gray-400 uppercase tracking-wide mb-1 block">模型名称</label>
+                    <input
+                      value={selected ? (modelSelection.model ?? '') : option.defaultModel}
+                      onChange={(e) => handleModelInput(e.target.value)}
+                      disabled={!selected}
+                      placeholder={option.defaultModel}
+                      className={`w-full px-3 py-2 rounded-lg border text-sm bg-gray-900 ${
+                        selected 
+                          ? 'border-blue-500/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50' 
+                          : 'border-gray-700 text-gray-500 cursor-not-allowed'
+                      }`}
+                    />
+                    {option.helper && <p className="text-[11px] text-gray-500 mt-1">{option.helper}</p>}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={handleSaveModel}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-blue-900/30"
+            >
+              保存模型设置
+            </button>
+          </div>
+        </div>
         
         {/* Talent Selection */}
         <div className="p-6 border-b border-gray-700">

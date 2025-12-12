@@ -52,7 +52,11 @@ const gameTurnSchema: Schema = {
   required: ["content", "isDeath"],
 };
 
-export const generateTurn = async (gameState: GameState, choiceMade?: string): Promise<GeminiResponse> => {
+export const generateTurn = async (
+  gameState: GameState,
+  choiceMade?: string,
+  modelOverride?: string
+): Promise<GeminiResponse> => {
   if (!apiKey) {
     return {
       content: "系统检测到 API Key 缺失，世界崩塌了。",
@@ -62,7 +66,7 @@ export const generateTurn = async (gameState: GameState, choiceMade?: string): P
   }
 
   try {
-    const model = "gemini-2.5-flash";
+    const model = modelOverride || "gemini-2.5-flash";
     const age = gameState.age + 1;
     
     // Determine life stage context to guide the AI
@@ -142,11 +146,14 @@ export const generateTurn = async (gameState: GameState, choiceMade?: string): P
   }
 };
 
-export const generateSummary = async (gameState: GameState): Promise<string> => {
+export const generateSummary = async (
+  gameState: GameState,
+  modelOverride?: string
+): Promise<string> => {
   if (!apiKey) return "一个没有被记录的人生。";
 
   try {
-    const model = "gemini-2.5-flash";
+    const model = modelOverride || "gemini-2.5-flash";
     const prompt = `
       Write a poignant, short epitaph/summary for a character who lived to ${gameState.age}.
       Stats: Health=${gameState.stats.health}, Int=${gameState.stats.intelligence}, Charm=${gameState.stats.charm}, Wealth=${gameState.stats.wealth}.

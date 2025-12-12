@@ -3,8 +3,7 @@ import { GameState, Phase, Stats, Talent, ChoiceOption } from './types';
 import StartScreen from './components/StartScreen';
 import StatsPanel from './components/StatsPanel';
 import EventLog from './components/EventLog';
-// import { generateTurn, generateSummary } from './services/geminiService';
-import { generateTurn, generateSummary } from './services/ollamaService';
+import { generateTurn, generateSummary } from './services/llmService';
 
 
 const App: React.FC = () => {

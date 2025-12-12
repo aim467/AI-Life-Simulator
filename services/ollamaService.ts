@@ -52,9 +52,14 @@ const parseJsonFromText = (text: string): any => {
   return null;
 };
 
-export const generateTurn = async (gameState: GameState, choiceMade?: string): Promise<GeminiResponse> => {
+export const generateTurn = async (
+  gameState: GameState,
+  choiceMade?: string,
+  modelOverride?: string
+): Promise<GeminiResponse> => {
   try {
     const age = gameState.age;
+    const modelToUse = modelOverride || OLLAMA_MODEL;
     
     // 生命阶段上下文（包含明确的年龄范围）
     let stageContext = "普通的一年。";
@@ -143,7 +148,7 @@ ${recentHistory || '人生刚刚开始'}
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: OLLAMA_MODEL,
+        model: modelToUse,
         prompt: `${systemPrompt}\n\n${userPrompt}`,
         stream: false,
         format: "json",
@@ -205,7 +210,10 @@ ${recentHistory || '人生刚刚开始'}
   }
 };
 
-export const generateSummary = async (gameState: GameState): Promise<string> => {
+export const generateSummary = async (
+  gameState: GameState,
+  modelOverride?: string
+): Promise<string> => {
   try {
     const keyMoments = gameState.history
       .filter(h => h.type === 'choice' || h.type === 'achievement')
@@ -242,11 +250,12 @@ ${gameState.deathReason || '寿终正寝，安详离世'}
 直接输出墓志铭文字，不要任何标签或解释。
 `;
     
+    const modelToUse = modelOverride || OLLAMA_MODEL;
     const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: OLLAMA_MODEL,
+        model: modelToUse,
         prompt,
         stream: false,
         options: { temperature: 0.8, num_predict: 200 }
