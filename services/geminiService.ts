@@ -158,7 +158,7 @@ export const generateSummary = async (
       Write a poignant, short epitaph/summary for a character who lived to ${gameState.age}.
       Stats: Health=${gameState.stats.health}, Int=${gameState.stats.intelligence}, Charm=${gameState.stats.charm}, Wealth=${gameState.stats.wealth}.
       Achievements: ${gameState.achievements.join(', ')}
-      Key Events: ${gameState.history.filter(h => h.type === 'choice' || h.type === 'achievement').slice(-8).map(h => h.content).join('; ')}
+      Key Events: ${gameState.history.filter(h => h.type === 'choice' || (h.achievements && h.achievements.length > 0)).slice(-8).map(h => h.content).join('; ')}
       Death Reason: ${gameState.deathReason}
       Tone: Witty and profound.
       Language: Chinese (Simplified).

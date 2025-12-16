@@ -225,7 +225,7 @@ export const generateSummary = async (
 ): Promise<string> => {
   try {
     const keyMoments = gameState.history
-      .filter(h => h.type === 'choice' || h.type === 'achievement')
+      .filter(h => h.type === 'choice' || (h.achievements && h.achievements.length > 0))
       .slice(-8)
       .map(h => `${h.age}岁: ${h.content}`)
       .join('\n');
