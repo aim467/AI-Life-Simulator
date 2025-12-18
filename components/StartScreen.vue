@@ -136,212 +136,355 @@ const handleStart = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4 max-w-3xl mx-auto font-sans">
-    <div class="text-center mb-8">
-      <h1 class="text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-        AI 人生重开
-      </h1>
-      <p class="text-gray-400 tracking-wider text-sm uppercase">Next-Gen Life Simulator with Multi-Model Support</p>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-4 max-w-4xl mx-auto font-sans relative overflow-hidden">
+    <!-- 背景装饰 -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s"></div>
     </div>
 
-    <div class="w-full bg-gray-800/80 backdrop-blur rounded-3xl shadow-2xl border border-gray-700 overflow-hidden">
-      <div class="p-6 border-b border-gray-700 bg-gray-900/40">
-        <div class="flex justify-between items-center mb-4">
+    <div class="text-center mb-10 relative z-10">
+      <div class="inline-block mb-4">
+        <div class="text-6xl mb-2">🎮</div>
+      </div>
+      <h1 class="text-6xl md:text-7xl font-black mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-gradient">
+        AI 人生重开
+      </h1>
+      <p class="text-gray-500 tracking-widest text-xs uppercase font-bold">Next-Gen Life Simulator · Powered by AI</p>
+      <div class="mt-4 flex items-center justify-center gap-2 text-xs text-gray-600">
+        <span class="px-2 py-1 bg-gray-800/50 rounded border border-gray-700/50">Vue 3</span>
+        <span class="px-2 py-1 bg-gray-800/50 rounded border border-gray-700/50">Gemini</span>
+        <span class="px-2 py-1 bg-gray-800/50 rounded border border-gray-700/50">Ollama</span>
+      </div>
+    </div>
+
+    <div class="w-full bg-gray-800/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-700/50 overflow-hidden relative z-10">
+      <!-- Step 0: 模型设置 -->
+      <div class="p-8 border-b border-gray-700/50 bg-gradient-to-br from-gray-900/60 to-gray-800/40">
+        <div class="flex justify-between items-start mb-6">
           <div>
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-              <span class="bg-emerald-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">0</span>
-              模型设置
-            </h2>
-            <p class="text-xs text-gray-400 mt-1">选择并保存你想要使用的大模型，设置会保存在浏览器</p>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="bg-gradient-to-br from-emerald-500 to-emerald-600 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-lg shadow-emerald-900/50">0</span>
+              <h2 class="text-2xl font-black text-white">模型设置</h2>
+            </div>
+            <p class="text-sm text-gray-400 ml-11">选择你的 AI 引擎，配置将自动保存</p>
           </div>
           <span
             v-if="modelSaved"
-            class="text-xs text-green-400 font-bold bg-green-900/40 border border-green-500/30 px-3 py-1 rounded-full"
+            class="text-xs text-green-400 font-bold bg-green-900/40 border border-green-500/30 px-4 py-2 rounded-full animate-fade-in flex items-center gap-2"
           >
-            已保存 ✓
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            已保存
           </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label
             v-for="option in SUPPORTED_MODELS"
             :key="option.provider"
-            class="p-4 rounded-xl border transition-all cursor-pointer block"
+            class="p-5 rounded-2xl border-2 transition-all cursor-pointer block group relative overflow-hidden"
             :class="modelSelection.provider === option.provider
-              ? 'border-blue-500/70 bg-blue-900/20 ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
-              : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'"
+              ? 'border-blue-500/70 bg-gradient-to-br from-blue-900/30 to-blue-800/20 shadow-lg shadow-blue-900/30'
+              : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600 hover:bg-gray-800/50'"
           >
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex items-center gap-2">
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" v-if="modelSelection.provider !== option.provider"></div>
+            
+            <div class="flex items-start gap-3 relative z-10">
+              <div class="mt-0.5">
                 <input
                   type="radio"
                   name="llm-provider"
                   :checked="modelSelection.provider === option.provider"
-                  class="accent-blue-500 w-4 h-4"
+                  class="accent-blue-500 w-5 h-5 cursor-pointer"
                   @change="handleProviderChange(option.provider)"
                 />
-                <div>
-                  <div class="text-sm font-bold text-white">{{ option.label }}</div>
-                  <p class="text-xs text-gray-400 mt-0.5">{{ option.description }}</p>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">{{ option.provider === 'ollama' ? '🏠' : '☁️' }}</span>
+                  <div class="text-base font-bold text-white">{{ option.label }}</div>
                 </div>
+                <p class="text-xs text-gray-400 leading-relaxed">{{ option.description }}</p>
               </div>
             </div>
-            <div class="mt-3">
-              <label class="text-[11px] text-gray-400 uppercase tracking-wide mb-1 block">模型名称</label>
+            
+            <div class="mt-4 relative z-10">
+              <label class="text-[10px] text-gray-500 uppercase tracking-wider mb-2 block font-bold">模型名称</label>
               <input
                 :value="modelSelection.provider === option.provider ? modelSelection.model ?? '' : option.defaultModel"
                 :disabled="modelSelection.provider !== option.provider"
                 :placeholder="option.defaultModel"
-                class="w-full px-3 py-2 rounded-lg border text-sm bg-gray-900"
+                class="w-full px-4 py-2.5 rounded-xl border text-sm font-mono transition-all"
                 :class="modelSelection.provider === option.provider
-                  ? 'border-blue-500/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50'
-                  : 'border-gray-700 text-gray-500 cursor-not-allowed'"
+                  ? 'border-blue-500/50 bg-gray-900/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500'
+                  : 'border-gray-700/50 bg-gray-900/40 text-gray-500 cursor-not-allowed'"
                 @input="handleModelInput(($event.target as HTMLInputElement).value)"
               />
-              <p v-if="option.helper" class="text-[11px] text-gray-500 mt-1">{{ option.helper }}</p>
+              <p v-if="option.helper" class="text-[10px] text-gray-500 mt-2 leading-relaxed">💡 {{ option.helper }}</p>
             </div>
           </label>
         </div>
 
-        <div class="flex justify-end mt-4">
+        <div class="flex justify-end mt-6">
           <button
             type="button"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-blue-900/30"
+            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 hover:scale-105 active:scale-95"
             @click="handleSaveModel"
           >
-            保存模型设置
+            💾 保存配置
           </button>
         </div>
       </div>
 
-      <div class="p-6 border-b border-gray-700">
-        <div class="flex justify-between items-center mb-4">
+      <!-- Step 1: 天赋抽取 -->
+      <div class="p-8 border-b border-gray-700/50 bg-gradient-to-br from-gray-800/40 to-gray-900/40">
+        <div class="flex justify-between items-start mb-6">
           <div>
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-              <span class="bg-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-              天赋抽取
-            </h2>
-            <p class="text-xs text-gray-400 mt-1">请选择 <span class="text-blue-400 font-bold">3</span> 个天赋</p>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="bg-gradient-to-br from-blue-500 to-blue-600 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-lg shadow-blue-900/50">1</span>
+              <h2 class="text-2xl font-black text-white">天赋抽取</h2>
+            </div>
+            <p class="text-sm text-gray-400 ml-11">
+              从命运池中选择 <span class="text-blue-400 font-bold px-2 py-0.5 bg-blue-900/30 rounded">3</span> 个天赋
+              <span class="text-gray-600 ml-2">(已选 {{ selectedTalents.length }}/3)</span>
+            </p>
           </div>
           <button
             type="button"
-            class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-blue-300 transition flex items-center gap-1"
+            class="px-4 py-2.5 bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/30 rounded-xl text-sm font-bold text-purple-300 transition-all flex items-center gap-2 hover:scale-105 active:scale-95 shadow-lg"
             @click="rollTalents"
           >
-            🔄 十连抽
+            <span class="text-base">🎲</span>
+            十连抽
           </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-h-80 overflow-y-auto custom-scrollbar pr-2">
           <button
             v-for="t in availableTalents"
             :key="t.id"
             type="button"
-            class="p-2 rounded-lg border text-left transition-all relative overflow-hidden group"
+            class="p-3 rounded-xl border-2 text-left transition-all relative overflow-hidden group"
             :class="[
               selectedTalents.some((sel) => sel.id === t.id)
-                ? 'border-blue-500 bg-blue-900/40 ring-1 ring-blue-500'
-                : 'border-gray-700 bg-gray-700/30 hover:bg-gray-700/60',
-              !selectedTalents.some((sel) => sel.id === t.id) && selectedTalents.length >= 3 ? 'opacity-40 cursor-not-allowed' : ''
+                ? 'border-blue-500 bg-gradient-to-br from-blue-900/50 to-blue-800/30 ring-2 ring-blue-500/50 shadow-lg shadow-blue-900/50 scale-105'
+                : 'border-gray-700/50 bg-gray-800/30 hover:bg-gray-700/50 hover:border-gray-600 hover:scale-102',
+              !selectedTalents.some((sel) => sel.id === t.id) && selectedTalents.length >= 3 ? 'opacity-30 cursor-not-allowed grayscale' : ''
             ]"
             :disabled="!selectedTalents.some((sel) => sel.id === t.id) && selectedTalents.length >= 3"
             @click="toggleTalent(t)"
           >
+            <!-- 稀有度光效 -->
             <div
-              class="text-sm font-bold truncate"
-              :class="t.rarity === 'legendary'
-                ? 'text-orange-400'
-                : t.rarity === 'epic'
-                  ? 'text-purple-400'
-                  : t.rarity === 'rare'
-                    ? 'text-blue-400'
-                    : 'text-gray-300'"
+              v-if="t.rarity === 'legendary'"
+              class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 animate-pulse"
+            ></div>
+            <div
+              v-else-if="t.rarity === 'epic'"
+              class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10"
+            ></div>
+
+            <!-- 选中标记 -->
+            <div
+              v-if="selectedTalents.some((sel) => sel.id === t.id)"
+              class="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg"
             >
-              {{ t.name }}
+              ✓
             </div>
-            <div class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2">{{ t.description }}</div>
-            <div v-if="t.rarity === 'legendary'" class="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-bl shadow-[0_0_5px_rgba(249,115,22,0.8)]" />
+
+            <!-- 稀有度角标 -->
+            <div
+              v-if="t.rarity === 'legendary'"
+              class="absolute top-0 right-0 w-0 h-0 border-t-[24px] border-r-[24px] border-t-orange-500 border-r-transparent opacity-80"
+            >
+              <span class="absolute -top-5 right-0.5 text-[10px]">✨</span>
+            </div>
+            <div
+              v-else-if="t.rarity === 'epic'"
+              class="absolute top-0 right-0 w-0 h-0 border-t-[20px] border-r-[20px] border-t-purple-500 border-r-transparent opacity-60"
+            ></div>
+
+            <div class="relative z-10">
+              <div
+                class="text-sm font-bold mb-1 truncate"
+                :class="t.rarity === 'legendary'
+                  ? 'text-orange-400'
+                  : t.rarity === 'epic'
+                    ? 'text-purple-400'
+                    : t.rarity === 'rare'
+                      ? 'text-blue-400'
+                      : 'text-gray-300'"
+              >
+                {{ t.name }}
+              </div>
+              <div class="text-[10px] text-gray-500 leading-tight line-clamp-3">{{ t.description }}</div>
+            </div>
           </button>
         </div>
       </div>
 
-      <div class="p-6 bg-gray-900/30">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-white flex items-center gap-2">
-            <span class="bg-purple-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-            属性分配
-          </h2>
+      <!-- Step 2: 属性分配 -->
+      <div class="p-8 bg-gradient-to-br from-gray-900/40 to-gray-800/40">
+        <div class="flex justify-between items-start mb-6">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="bg-gradient-to-br from-purple-500 to-purple-600 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-lg shadow-purple-900/50">2</span>
+              <h2 class="text-2xl font-black text-white">属性分配</h2>
+            </div>
+            <p class="text-sm text-gray-400 ml-11">自由分配你的初始属性点</p>
+          </div>
           <div class="flex items-center gap-3">
             <button
               type="button"
-              class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-purple-300 transition flex items-center gap-1"
+              class="px-4 py-2.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 border border-purple-500/30 rounded-xl text-sm font-bold text-purple-300 transition-all flex items-center gap-2 hover:scale-105 active:scale-95 shadow-lg"
               @click="randomizeStats"
             >
-              🎲 随机分配
+              <span class="text-base">🎲</span>
+              随机
             </button>
-            <div class="text-sm bg-gray-800 border border-gray-600 px-4 py-1.5 rounded-full text-white shadow-inner">
-              可用点数: <span :class="['font-mono font-bold text-lg', points > 0 ? 'text-green-400' : 'text-gray-500']">{{ points }}</span>
+            <div class="text-sm bg-gray-800/80 border-2 border-gray-700/50 px-5 py-2.5 rounded-xl text-white shadow-lg backdrop-blur">
+              <span class="text-gray-400 text-xs">剩余</span>
+              <span :class="['font-mono font-black text-2xl ml-2', points > 0 ? 'text-green-400' : 'text-gray-500']">{{ points }}</span>
             </div>
           </div>
         </div>
 
-        <div class="space-y-3">
-          <div v-for="key in (Object.keys(stats) as Array<keyof Stats>)" :key="key" class="flex items-center gap-4 group">
-            <span class="w-12 text-sm text-gray-400 font-bold capitalize text-right group-hover:text-gray-200 transition-colors">
-              {{ key === 'health' ? '健康' : key === 'intelligence' ? '智力' : key === 'charm' ? '魅力' : key === 'wealth' ? '家境' : '快乐' }}
-            </span>
-            <button
-              v-if="key !== 'health'"
-              type="button"
-              class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-gray-500 transition-all font-bold"
-              @click="handleStatChange(key, -1)"
-            >
-              -
-            </button>
-            <div v-else class="w-8 h-8 flex items-center justify-center text-gray-600 text-xs">锁定</div>
-            <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
-              <div
-                class="h-full transition-all duration-300"
-                :class="key === 'health'
-                  ? 'bg-red-500'
-                  : key === 'intelligence'
-                    ? 'bg-blue-500'
-                    : key === 'charm'
-                      ? 'bg-pink-500'
-                      : key === 'wealth'
-                        ? 'bg-yellow-500'
-                        : 'bg-green-500'"
-                :style="{ width: key === 'health' ? '100%' : `${(stats[key] / 20) * 100}%` }"
-              />
+        <div class="space-y-4">
+          <div v-for="key in (Object.keys(stats) as Array<keyof Stats>)" :key="key" class="group">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">
+                  {{ key === 'health' ? '❤️' : key === 'intelligence' ? '🧠' : key === 'charm' ? '✨' : key === 'wealth' ? '💰' : '😊' }}
+                </span>
+                <span class="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">
+                  {{ key === 'health' ? '健康' : key === 'intelligence' ? '智力' : key === 'charm' ? '魅力' : key === 'wealth' ? '家境' : '快乐' }}
+                </span>
+                <span v-if="key === 'health'" class="text-[10px] text-gray-600 bg-gray-800/50 px-2 py-0.5 rounded-full">固定</span>
+              </div>
+              <span class="font-mono text-2xl font-black text-white">{{ stats[key] }}</span>
             </div>
-            <span class="w-8 text-center font-mono text-lg font-bold text-white">{{ stats[key] }}</span>
-            <button
-              v-if="key !== 'health'"
-              type="button"
-              class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-lg hover:bg-green-500/20 hover:text-green-400 text-gray-500 transition-all font-bold"
-              @click="handleStatChange(key, 1)"
-            >
-              +
-            </button>
-            <div v-else class="w-8 h-8 flex items-center justify-center text-gray-600 text-xs">锁定</div>
+            
+            <div class="flex items-center gap-3">
+              <button
+                v-if="key !== 'health'"
+                type="button"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800/80 rounded-xl hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 text-gray-500 transition-all font-bold border-2 border-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="stats[key] === 0"
+                @click="handleStatChange(key, -1)"
+              >
+                −
+              </button>
+              <div v-else class="w-10 h-10 flex items-center justify-center text-gray-700 text-xs bg-gray-800/30 rounded-xl border-2 border-gray-800/50">🔒</div>
+              
+              <div class="flex-1 h-4 bg-gray-800/80 rounded-full overflow-hidden border-2 border-gray-700/50 shadow-inner relative">
+                <div
+                  class="h-full transition-all duration-500 ease-out relative"
+                  :class="key === 'health'
+                    ? 'bg-gradient-to-r from-red-600 to-red-500'
+                    : key === 'intelligence'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500'
+                      : key === 'charm'
+                        ? 'bg-gradient-to-r from-pink-600 to-pink-500'
+                        : key === 'wealth'
+                          ? 'bg-gradient-to-r from-yellow-600 to-yellow-500'
+                          : 'bg-gradient-to-r from-green-600 to-green-500'"
+                  :style="{ width: key === 'health' ? '100%' : `${(stats[key] / 20) * 100}%` }"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                </div>
+              </div>
+              
+              <button
+                v-if="key !== 'health'"
+                type="button"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800/80 rounded-xl hover:bg-green-500/20 hover:text-green-400 hover:border-green-500/30 text-gray-500 transition-all font-bold border-2 border-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="points === 0"
+                @click="handleStatChange(key, 1)"
+              >
+                +
+              </button>
+              <div v-else class="w-10 h-10 flex items-center justify-center text-gray-700 text-xs bg-gray-800/30 rounded-xl border-2 border-gray-800/50">🔒</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="p-6 border-t border-gray-700">
+      <!-- 开始按钮 -->
+      <div class="p-8 bg-gradient-to-br from-gray-900/60 to-gray-800/60">
         <button
           type="button"
-          class="w-full py-4 rounded-xl font-black text-lg tracking-[0.2em] transition-all transform duration-200"
+          class="w-full py-5 rounded-2xl font-black text-xl tracking-wider transition-all transform duration-200 relative overflow-hidden group"
           :class="points === 0
-            ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] text-white'
-            : 'bg-gray-800 text-gray-600 cursor-not-allowed border border-gray-700'"
+            ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white shadow-2xl shadow-indigo-900/50 hover:shadow-indigo-900/70'
+            : 'bg-gray-800/50 text-gray-600 cursor-not-allowed border-2 border-gray-700/50'"
           :disabled="points > 0"
           @click="handleStart"
         >
-          {{ points > 0 ? `剩余 ${points} 点属性未分配` : '开启新人生' }}
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          <span class="relative z-10 flex items-center justify-center gap-3">
+            <span v-if="points === 0" class="text-2xl">🚀</span>
+            <span v-else class="text-2xl">⏳</span>
+            {{ points > 0 ? `还有 ${points} 点未分配` : '开启新人生' }}
+          </span>
         </button>
+        
+        <div v-if="points === 0" class="mt-4 text-center text-xs text-gray-500">
+          <p>✨ 准备好了吗？你的人生即将开始...</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-gradient {
+  background-size: 200% auto;
+  animation: gradient 3s ease infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.5);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.7);
+}
+
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+</style>
 

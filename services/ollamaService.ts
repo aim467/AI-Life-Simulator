@@ -1,6 +1,5 @@
 import { Ollama } from 'ollama';
 import { GameState, GeminiResponse } from "../types";
-import { log } from 'console';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://192.168.1.188:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3:32b'; // 推荐使用支持中文的模型
