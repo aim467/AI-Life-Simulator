@@ -1,13 +1,12 @@
+import { Ollama } from 'ollama';
 import { GameState, GeminiResponse } from "../types";
+import { log } from 'console';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://192.168.1.188:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3:32b'; // 推荐使用支持中文的模型
 
-interface OllamaResponse {
-  model: string;
-  response: string;
-  done: boolean;
-}
+// 创建 Ollama 客户端实例
+const ollama = new Ollama({ host: OLLAMA_BASE_URL });
 
 const parseJsonFromText = (text: string): any => {
   // 清理文本
@@ -122,6 +121,9 @@ ${stageContext}
 
 【近期经历】
 ${recentHistory || '人生刚刚开始'}
+
+请严格遵守 system 中的 JSON 契约。
+如果无法满足规则，请生成“平稳但合理”的普通年份事件。
 `;
 
     if (choiceMade) {
@@ -153,37 +155,27 @@ ${recentHistory || '人生刚刚开始'}
 7. 仅当健康<5且发生明确致命事件或高龄衰老时死亡（isDeath:true，提供deathReason）；否则提供恢复机会`;
     }
 
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: modelToUse,
-        prompt: `${systemPrompt}\n\n${userPrompt}`,
-        stream: false,
-        format: "json",
-        options: {
-          temperature: 0.8,
-          num_predict: 300,
-        }
-      })
+    const response = await ollama.generate({
+      model: modelToUse,
+      prompt: `${systemPrompt}\n\n${userPrompt}`,
+      stream: false,
+      format: "json",
+      options: {
+        temperature: 0.8,
+        num_predict: 300,
+      }
     });
 
-
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
-    }
-
-    const data: OllamaResponse = await response.json();
-    console.log("Ollama raw response:", data.response); // 调试用
+    console.log("Ollama raw response:", response.response); // 调试用
     
-    const parsed = parseJsonFromText(data.response);
+    const parsed = parseJsonFromText(response.response);
 
     console.log(parsed);
     
     if (!parsed) {
       // JSON 解析失败，从原始文本生成回退响应
       return {
-        content: data.response.slice(0, 100) || "平淡的一年。",
+        content: response.response.slice(0, 100) || "平淡的一年。",
         statChanges: { health: 0, intelligence: 0, charm: 0, wealth: 0, happiness: 0 },
         isDeath: false,
       };
@@ -256,25 +248,21 @@ ${gameState.deathReason || '寿终正寝，安详离世'}
 7. 风格可以是感慨、讽刺、温暖或悲壮，根据人生经历选择
 8. 使用简体中文，语言优美
 
-直接输出墓志铭文字，不要任何标签或解释。
+按照以下格式输出：
+{"result": ""}
 `;
     
     const modelToUse = modelOverride || OLLAMA_MODEL;
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: modelToUse,
-        prompt,
-        stream: false,
-        options: { temperature: 0.8, num_predict: 200 }
-      })
+    const response = await ollama.generate({
+      model: modelToUse,
+      format: "json",
+      prompt: prompt,
+      stream: false,
+      options: { temperature: 0.8, num_predict: 200 }
     });
-
-    if (!response.ok) throw new Error("Ollama error");
-    
-    const data: OllamaResponse = await response.json();
-    return data.response.trim() || "人生如梦，一樽还酹江月。";
+    // 提取 result
+    let result = JSON.parse(response.response.trim());
+    return result["result"] || "人生如梦，一樽还酹江月。"
   } catch (e) {
     return "人生总有终点。";
   }

@@ -31,7 +31,7 @@ const modelSelection = ref<LLMSelection>(DEFAULT_LLM_SELECTION);
 const modelSaved = ref(false);
 const points = ref(20);
 const stats = ref<Stats>({
-  health: 0,
+  health: 100,
   intelligence: 0,
   charm: 0,
   wealth: 0,
@@ -75,6 +75,9 @@ const rollTalents = () => {
 };
 
 const handleStatChange = (key: keyof Stats, delta: number) => {
+  // Prevent modifying health stat
+  if (key === 'health') return;
+  
   const current = stats.value[key];
   if (delta > 0 && points.value > 0) {
     stats.value = { ...stats.value, [key]: current + 1 };
@@ -87,8 +90,8 @@ const handleStatChange = (key: keyof Stats, delta: number) => {
 
 const randomizeStats = () => {
   const totalPoints = 20;
-  const statKeys: Array<keyof Stats> = ['health', 'intelligence', 'charm', 'wealth', 'happiness'];
-  const newStats: Stats = { health: 0, intelligence: 0, charm: 0, wealth: 0, happiness: 0 };
+  const statKeys: Array<keyof Stats> = ['intelligence', 'charm', 'wealth', 'happiness'];
+  const newStats: Stats = { health: 50, intelligence: 0, charm: 0, wealth: 0, happiness: 0 };
   let remainingPoints = totalPoints;
 
   for (let i = 0; i < statKeys.length - 1; i += 1) {
@@ -288,12 +291,14 @@ const handleStart = () => {
               {{ key === 'health' ? '健康' : key === 'intelligence' ? '智力' : key === 'charm' ? '魅力' : key === 'wealth' ? '家境' : '快乐' }}
             </span>
             <button
+              v-if="key !== 'health'"
               type="button"
               class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-gray-500 transition-all font-bold"
               @click="handleStatChange(key, -1)"
             >
               -
             </button>
+            <div v-else class="w-8 h-8 flex items-center justify-center text-gray-600 text-xs">锁定</div>
             <div class="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
               <div
                 class="h-full transition-all duration-300"
@@ -306,17 +311,19 @@ const handleStart = () => {
                       : key === 'wealth'
                         ? 'bg-yellow-500'
                         : 'bg-green-500'"
-                :style="{ width: `${(stats[key] / 20) * 100}%` }"
+                :style="{ width: key === 'health' ? '100%' : `${(stats[key] / 20) * 100}%` }"
               />
             </div>
             <span class="w-8 text-center font-mono text-lg font-bold text-white">{{ stats[key] }}</span>
             <button
+              v-if="key !== 'health'"
               type="button"
               class="w-8 h-8 flex items-center justify-center bg-gray-800 rounded-lg hover:bg-green-500/20 hover:text-green-400 text-gray-500 transition-all font-bold"
               @click="handleStatChange(key, 1)"
             >
               +
             </button>
+            <div v-else class="w-8 h-8 flex items-center justify-center text-gray-600 text-xs">锁定</div>
           </div>
         </div>
       </div>
