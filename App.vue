@@ -124,158 +124,167 @@ const handleRestart = () => {
 
   <div
     v-else
-    class="flex flex-col h-screen max-w-md mx-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 shadow-2xl md:max-w-xl md:border-x md:border-gray-800/50 font-sans relative"
+    class="flex h-screen max-w-7xl mx-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 shadow-2xl font-sans relative"
   >
     <!-- 背景装饰 -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      <div class="absolute top-0 left-0 w-64 h-64 bg-blue-500/3 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/3 rounded-full blur-3xl"></div>
+      <div class="absolute top-0 left-0 w-96 h-96 bg-blue-500/3 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/3 rounded-full blur-3xl"></div>
     </div>
 
-    <!-- 顶部状态栏 -->
-    <div class="flex-shrink-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl relative z-20">
-      <div class="px-5 py-4">
+    <!-- 左侧操作区 -->
+    <div class="flex-shrink-0 w-full md:w-96 lg:w-[420px] flex flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 relative z-10">
+      <!-- 顶部信息 -->
+      <div class="flex-shrink-0 p-5 border-b border-gray-800/50">
         <!-- 年龄和天赋 -->
-        <div class="flex justify-between items-start mb-4">
-          <div class="flex items-baseline gap-2">
-            <span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">{{ gameState.age }}</span>
-            <span class="text-base text-gray-500 font-bold">岁</span>
+        <div class="mb-4">
+          <div class="flex items-baseline gap-3 mb-3">
+            <span class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 tracking-tight">{{ gameState.age }}</span>
+            <span class="text-xl text-gray-500 font-bold">岁</span>
           </div>
-          <div class="flex flex-col items-end gap-2">
-            <div class="flex flex-wrap gap-1.5 justify-end max-w-[180px]">
-              <span
-                v-for="t in gameState.talents"
-                :key="t.id"
-                class="text-[10px] px-2 py-1 rounded-lg bg-gradient-to-r from-blue-900/40 to-purple-900/40 text-blue-300 border border-blue-700/50 backdrop-blur-sm font-bold"
-              >
-                {{ t.name }}
-              </span>
-            </div>
-            <div v-if="gameState.achievements.length > 0" class="flex items-center gap-1.5 text-xs bg-yellow-900/30 text-yellow-400 font-bold px-3 py-1.5 rounded-lg border border-yellow-700/50">
-              <span class="text-sm">🏆</span>
-              <span>{{ gameState.achievements.length }}</span>
-            </div>
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="t in gameState.talents"
+              :key="t.id"
+              class="text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-900/40 to-purple-900/40 text-blue-300 border border-blue-700/50 backdrop-blur-sm font-bold"
+            >
+              {{ t.name }}
+            </span>
+          </div>
+          <div v-if="gameState.achievements.length > 0" class="flex items-center gap-2 text-sm bg-yellow-900/30 text-yellow-400 font-bold px-4 py-2 rounded-lg border border-yellow-700/50 mt-3 w-fit">
+            <span class="text-base">🏆</span>
+            <span>{{ gameState.achievements.length }} 个成就</span>
           </div>
         </div>
         
         <!-- 属性面板 -->
         <StatsPanel :stats="gameState.stats" />
       </div>
-    </div>
 
-    <!-- 事件日志区域 -->
-    <div class="flex-1 overflow-y-auto p-4 relative custom-scrollbar">
-      <EventLog :history="gameState.history" />
-      
-      <!-- 底部渐变遮罩 - 仅在非处理状态显示 -->
-      <div
-        v-if="!gameState.isProcessing"
-        class="sticky bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent pointer-events-none -mt-20"
-      ></div>
-
-      <!-- AI 思考中动画 -->
-      <div
-        v-if="gameState.isProcessing"
-        class="sticky bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-950 via-gray-950/95 to-transparent flex items-end justify-center pb-6 pointer-events-none -mt-32"
-      >
-        <div class="flex flex-col items-center gap-3">
-          <div class="flex items-center space-x-2 text-blue-300 bg-gray-900/90 px-6 py-3 rounded-2xl border-2 border-blue-500/30 shadow-2xl backdrop-blur-md">
-            <div class="flex space-x-1.5">
-              <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-              <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
-              <div class="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+      <!-- 操作区 -->
+      <div class="flex-1 flex flex-col justify-end p-5 pb-safe relative z-20">
+        <!-- 游戏结束界面 -->
+        <div v-if="gameState.phase === Phase.ENDED" class="space-y-4 animate-fade-in-up">
+          <div class="text-center mb-4">
+            <div class="text-5xl mb-2">⚰️</div>
+            <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-500 mb-1">人生落幕</h2>
+            <p class="text-xs text-gray-600">享年 {{ gameState.age }} 岁</p>
+          </div>
+          
+          <div class="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-5 rounded-2xl text-gray-300 italic border-2 border-gray-700/50 shadow-2xl backdrop-blur-sm">
+            <div class="text-xs text-gray-600 mb-2">墓志铭</div>
+            <p class="text-sm leading-relaxed">"{{ gameState.summary || '正在生成墓志铭...' }}"</p>
+          </div>
+          
+          <!-- 成就展示 -->
+          <div class="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50">
+            <div class="flex items-center justify-center gap-2 mb-3">
+              <span class="text-lg">🏆</span>
+              <span class="text-sm text-gray-400 font-bold">本局成就</span>
+              <span class="text-xs text-gray-600">({{ gameState.achievements.length }})</span>
             </div>
-            <span class="text-sm font-bold tracking-wide ml-2">AI 正在编织命运...</span>
-          </div>
-          <div class="text-xs text-gray-600 animate-pulse">请稍候</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部操作区 -->
-    <div class="flex-shrink-0 p-5 bg-gray-900/95 backdrop-blur-xl border-t border-gray-800/50 pb-safe relative z-30">
-      <!-- 游戏结束界面 -->
-      <div v-if="gameState.phase === Phase.ENDED" class="text-center animate-fade-in-up">
-        <div class="mb-6">
-          <div class="text-6xl mb-3">⚰️</div>
-          <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-500 mb-2">人生落幕</h2>
-          <p class="text-sm text-gray-600">享年 {{ gameState.age }} 岁</p>
-        </div>
-        
-        <div class="bg-gradient-to-br from-gray-800/80 to-gray-900/80 p-6 rounded-2xl text-gray-300 italic mb-6 border-2 border-gray-700/50 shadow-2xl backdrop-blur-sm">
-          <div class="text-xs text-gray-600 mb-2">墓志铭</div>
-          <p class="text-sm leading-relaxed">"{{ gameState.summary || '正在生成墓志铭...' }}"</p>
-        </div>
-        
-        <!-- 成就展示 -->
-        <div class="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50 mb-6">
-          <div class="flex items-center justify-center gap-2 mb-3">
-            <span class="text-xl">🏆</span>
-            <span class="text-sm text-gray-400 font-bold">本局成就</span>
-            <span class="text-xs text-gray-600">({{ gameState.achievements.length }})</span>
-          </div>
-          <div v-if="gameState.achievements.length === 0" class="text-xs text-gray-600 py-2">
-            平凡的一生，未解锁任何成就
-          </div>
-          <div v-else class="flex flex-wrap gap-2 justify-center">
-            <span
-              v-for="(a, i) in gameState.achievements"
-              :key="`${a}-${i}`"
-              class="text-xs bg-gradient-to-r from-yellow-900/30 to-orange-900/30 text-yellow-400 px-3 py-1.5 rounded-lg border border-yellow-700/40 font-bold"
-            >
-              {{ a }}
-            </span>
-          </div>
-        </div>
-        
-        <button
-          type="button"
-          class="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white font-black py-4 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-purple-900/50 text-lg"
-          @click="handleRestart"
-        >
-          <span class="flex items-center justify-center gap-2">
-            <span class="text-xl">🔄</span>
-            再次重开
-          </span>
-        </button>
-      </div>
-
-      <!-- 游戏进行中 -->
-      <div v-else class="space-y-3">
-        <!-- 选择分支 -->
-        <div v-if="gameState.pendingChoice && gameState.pendingChoice.length > 0" class="space-y-3 animate-fade-in-up">
-          <div class="text-center mb-2">
-            <div class="inline-flex items-center gap-2 bg-purple-900/30 text-purple-300 px-4 py-2 rounded-full border border-purple-500/30">
-              <span class="text-base">🔀</span>
-              <span class="text-xs font-bold uppercase tracking-wider">命运抉择</span>
+            <div v-if="gameState.achievements.length === 0" class="text-xs text-gray-600 py-2 text-center">
+              平凡的一生
+            </div>
+            <div v-else class="flex flex-wrap gap-2 justify-center max-h-32 overflow-y-auto custom-scrollbar">
+              <span
+                v-for="(a, i) in gameState.achievements"
+                :key="`${a}-${i}`"
+                class="text-xs bg-gradient-to-r from-yellow-900/30 to-orange-900/30 text-yellow-400 px-3 py-1.5 rounded-lg border border-yellow-700/40 font-bold"
+              >
+                {{ a }}
+              </span>
             </div>
           </div>
+          
           <button
-            v-for="choice in gameState.pendingChoice"
-            :key="choice.id"
-            class="w-full py-4 px-5 bg-gradient-to-r from-purple-900/80 to-purple-800/80 hover:from-purple-800 hover:to-purple-700 border-2 border-purple-500/40 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-purple-900/50 active:scale-[0.98] flex justify-between items-center group disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="gameState.isProcessing"
-            @click="handleNextTurn(choice.id)"
+            type="button"
+            class="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white font-black py-4 rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-purple-900/50"
+            @click="handleRestart"
           >
-            <span class="text-sm text-left flex-1">{{ choice.text }}</span>
-            <span class="text-purple-300 group-hover:translate-x-1 transition-transform text-lg">→</span>
+            <span class="flex items-center justify-center gap-2">
+              <span class="text-xl">🔄</span>
+              再次重开
+            </span>
           </button>
         </div>
+
+        <!-- 游戏进行中 -->
+        <div v-else class="space-y-3">
+          <!-- 选择分支 -->
+          <div v-if="gameState.pendingChoice && gameState.pendingChoice.length > 0" class="space-y-3 animate-fade-in-up">
+            <div class="text-center mb-2">
+              <div class="inline-flex items-center gap-2 bg-purple-900/30 text-purple-300 px-4 py-2 rounded-full border border-purple-500/30">
+                <span class="text-base">🔀</span>
+                <span class="text-xs font-bold uppercase tracking-wider">命运抉择</span>
+              </div>
+            </div>
+            <button
+              v-for="choice in gameState.pendingChoice"
+              :key="choice.id"
+              class="w-full py-4 px-5 bg-gradient-to-r from-purple-900/80 to-purple-800/80 hover:from-purple-800 hover:to-purple-700 border-2 border-purple-500/40 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-purple-900/50 active:scale-[0.98] flex justify-between items-center group disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="gameState.isProcessing"
+              @click="handleNextTurn(choice.id)"
+            >
+              <span class="text-sm text-left flex-1">{{ choice.text }}</span>
+              <span class="text-purple-300 group-hover:translate-x-1 transition-transform text-lg">→</span>
+            </button>
+          </div>
+          
+          <!-- 继续按钮 -->
+          <button
+            v-else
+            type="button"
+            class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-lg rounded-xl transition-all shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 active:scale-[0.98] relative overflow-hidden group"
+            :disabled="gameState.isProcessing"
+            @click="handleNextTurn()"
+          >
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <span class="relative z-10 flex items-center justify-center gap-2">
+              <span class="text-xl">{{ gameState.age === 0 ? '🎬' : '⏭️' }}</span>
+              {{ gameState.age === 0 ? '开始人生' : '下一年' }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧事件日志区域 -->
+    <div class="flex-1 flex flex-col relative z-10 hidden md:flex">
+      <div class="flex-shrink-0 p-5 border-b border-gray-800/50 bg-gray-900/50 backdrop-blur-sm">
+        <h2 class="text-lg font-black text-gray-300 flex items-center gap-2">
+          <span class="text-xl">📖</span>
+          人生轨迹
+        </h2>
+        <p class="text-xs text-gray-600 mt-1">记录你的每一个重要时刻</p>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-5 relative custom-scrollbar">
+        <EventLog :history="gameState.history" />
         
-        <!-- 继续按钮 -->
-        <button
-          v-else
-          type="button"
-          class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-lg rounded-xl transition-all shadow-lg shadow-blue-900/40 hover:shadow-blue-900/60 active:scale-[0.98] relative overflow-hidden group"
-          :disabled="gameState.isProcessing"
-          @click="handleNextTurn()"
+        <!-- 底部渐变遮罩 - 仅在非处理状态显示 -->
+        <div
+          v-if="!gameState.isProcessing"
+          class="sticky bottom-0 left-0 right-0 h-20 from-gray-950 via-gray-950/80 to-transparent pointer-events-none -mt-20"
+        ></div>
+
+        <!-- AI 思考中动画 -->
+        <div
+          v-if="gameState.isProcessing"
+          class="sticky bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-950 via-gray-950/95 to-transparent flex items-end justify-center pb-6 pointer-events-none -mt-32"
         >
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-          <span class="relative z-10 flex items-center justify-center gap-2">
-            <span class="text-xl">{{ gameState.age === 0 ? '🎬' : '⏭️' }}</span>
-            {{ gameState.age === 0 ? '开始人生' : '下一年' }}
-          </span>
-        </button>
+          <div class="flex flex-col items-center gap-3">
+            <div class="flex items-center space-x-2 text-blue-300 bg-gray-900/90 px-6 py-3 rounded-2xl border-2 border-blue-500/30 shadow-2xl backdrop-blur-md">
+              <div class="flex space-x-1.5">
+                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                <div class="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+              </div>
+              <span class="text-sm font-bold tracking-wide ml-2">AI 正在编织命运...</span>
+            </div>
+            <div class="text-xs text-gray-600 animate-pulse">请稍候</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
