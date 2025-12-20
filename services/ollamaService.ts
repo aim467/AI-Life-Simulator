@@ -7,6 +7,19 @@ const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3:32b'; // 推荐使用支
 // 创建 Ollama 客户端实例
 const ollama = new Ollama({ host: OLLAMA_BASE_URL });
 
+/**
+ * 获取本地 Ollama 可用的模型列表
+ */
+export const getOllamaModels = async (): Promise<string[]> => {
+  try {
+    const response = await ollama.list();
+    return response.models.map(model => model.name);
+  } catch (error) {
+    console.error("Failed to fetch Ollama models:", error);
+    return [];
+  }
+};
+
 const parseJsonFromText = (text: string): any => {
   // 清理文本
   let cleaned = text.trim();

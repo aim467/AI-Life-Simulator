@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import type { Stats, Talent } from '../types';
 import { LLMSelection, SUPPORTED_MODELS, getSavedLLMSelection, saveLLMSelection, DEFAULT_LLM_SELECTION } from '../services/llmService';
+import { getOllamaModels } from '../services/ollamaService';
 
 interface Emits {
   (e: 'start', stats: Stats, talents: Talent[]): void;
@@ -29,6 +30,8 @@ const TALENT_POOL: Talent[] = [
 
 const modelSelection = ref<LLMSelection>(DEFAULT_LLM_SELECTION);
 const modelSaved = ref(false);
+const ollamaModels = ref<string[]>([]);
+const loadingModels = ref(false);
 const points = ref(20);
 const stats = ref<Stats>({
   health: 100,
@@ -41,11 +44,36 @@ const stats = ref<Stats>({
 const availableTalents = ref<Talent[]>([]);
 const selectedTalents = ref<Talent[]>([]);
 
-onMounted(() => {
+onMounted(async () => {
   rollTalents();
   const savedModel = getSavedLLMSelection();
   modelSelection.value = savedModel;
+  
+  // 如果当前选择的是 Ollama，立即加载模型列表
+  if (savedModel.provider === 'ollama') {
+    await loadOllamaModels();
+  }
 });
+
+// 监听 provider 变化，自动加载 Ollama 模型列表
+watch(() => modelSelection.value.provider, async (newProvider) => {
+  if (newProvider === 'ollama' && ollamaModels.value.length === 0) {
+    await loadOllamaModels();
+  }
+});
+
+const loadOllamaModels = async () => {
+  loadingModels.value = true;
+  try {
+    const models = await getOllamaModels();
+    ollamaModels.value = models;
+  } catch (error) {
+    console.error('Failed to load Ollama models:', error);
+    ollamaModels.value = [];
+  } finally {
+    loadingModels.value = false;
+  }
+};
 
 const handleProviderChange = (provider: LLMSelection['provider']) => {
   const option = SUPPORTED_MODELS.find((m) => m.provider === provider);
@@ -57,6 +85,11 @@ const handleProviderChange = (provider: LLMSelection['provider']) => {
 };
 
 const handleModelInput = (value: string) => {
+  modelSelection.value = { ...modelSelection.value, model: value };
+  modelSaved.value = false;
+};
+
+const handleModelSelect = (value: string) => {
   modelSelection.value = { ...modelSelection.value, model: value };
   modelSaved.value = false;
 };
@@ -210,7 +243,71 @@ const handleStart = () => {
             
             <div class="mt-4 relative z-10">
               <label class="text-[10px] text-gray-500 uppercase tracking-wider mb-2 block font-bold">模型名称</label>
+              
+              <!-- Ollama 使用下拉选择 -->
+              <div v-if="option.provider === 'ollama' && modelSelection.provider === 'ollama'">
+                <div class="relative">
+                  <select
+                    :value="modelSelection.model ?? ''"
+                    :disabled="loadingModels"
+                    class="w-full px-4 py-2.5 pr-10 rounded-xl border text-sm font-mono transition-all appearance-none cursor-pointer"
+                    :class="loadingModels 
+                      ? 'border-gray-600/50 bg-gray-900/60 text-gray-400 cursor-wait'
+                      : 'border-blue-500/50 bg-gray-900/80 text-white hover:bg-gray-900 hover:border-blue-400/70 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-gray-900'"
+                    @change="handleModelSelect(($event.target as HTMLSelectElement).value)"
+                  >
+                    <option v-if="loadingModels" value="" class="bg-gray-900 text-gray-400">⏳ 加载中...</option>
+                    <option v-else-if="ollamaModels.length === 0" value="" class="bg-gray-900 text-gray-400">⚠️ 无可用模型</option>
+                    <option v-else value="" disabled class="bg-gray-900 text-gray-500">请选择模型</option>
+                    <option 
+                      v-for="model in ollamaModels" 
+                      :key="model" 
+                      :value="model"
+                      class="bg-gray-900 text-white hover:bg-blue-900/30 py-2"
+                    >
+                      {{ model }}
+                    </option>
+                  </select>
+                  
+                  <!-- 自定义下拉箭头 -->
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg 
+                      class="w-5 h-5 transition-transform"
+                      :class="loadingModels ? 'text-gray-500 animate-spin' : 'text-blue-400'"
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path v-if="loadingModels" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-3">
+                  <button
+                    type="button"
+                    class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-all flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-blue-900/20 border border-transparent hover:border-blue-500/30"
+                    :class="loadingModels ? 'opacity-50 cursor-not-allowed' : ''"
+                    @click="loadOllamaModels"
+                    :disabled="loadingModels"
+                  >
+                    <span class="text-sm" :class="loadingModels ? 'animate-spin' : ''">
+                      {{ loadingModels ? '⏳' : '🔄' }}
+                    </span>
+                    {{ loadingModels ? '加载中...' : '刷新列表' }}
+                  </button>
+                  
+                  <div v-if="ollamaModels.length > 0" class="text-[10px] text-gray-600 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                    已加载 {{ ollamaModels.length }} 个模型
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 其他 provider 使用输入框 -->
               <input
+                v-else
                 :value="modelSelection.provider === option.provider ? modelSelection.model ?? '' : option.defaultModel"
                 :disabled="modelSelection.provider !== option.provider"
                 :placeholder="option.defaultModel"
@@ -220,6 +317,7 @@ const handleStart = () => {
                   : 'border-gray-700/50 bg-gray-900/40 text-gray-500 cursor-not-allowed'"
                 @input="handleModelInput(($event.target as HTMLInputElement).value)"
               />
+              
               <p v-if="option.helper" class="text-[10px] text-gray-500 mt-2 leading-relaxed">💡 {{ option.helper }}</p>
             </div>
           </label>
